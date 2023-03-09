@@ -23,8 +23,8 @@ def read_csv_inparalel(file):
 
 logger.info('start read csvs')
 with Pool(cpu_count()) as p:
-    #files = p.map(read_csv_inparalel, theOrderBookFiles)
-    files = p.map(read_csv_inparalel, theOrderBookFiles[-1:]) # TEST 3 files
+    files = p.map(read_csv_inparalel, theOrderBookFiles)
+    #files = p.map(read_csv_inparalel, theOrderBookFiles[-3:]) # TEST 3 files
 logger.info('finish read csvs')
 
 df = pd.concat(files, ignore_index = True)
@@ -41,7 +41,7 @@ def computeRSI (data, time_window):
     down_chg = 0 * diff
     
     # up change is equal to the positive difference, otherwise equal to zero
-    up_chg[diff > 0] = diff[ diff>0 ]
+    up_chg[diff > 0] = diff[ diff > 0 ]
     
     # down change is equal to negative deifference, otherwise equal to zero
     down_chg[diff < 0] = diff[ diff < 0 ]
@@ -86,77 +86,89 @@ df.dropna(inplace=True)
 
 df.loc[(df['RSI'] <= 25) & (df['RSI'].shift(1) <= 25), '2RSI<25'] = True
 
-
+logger.info(df.head(50))
 logger.info(df.tail(50))
 
 dfnp = np.array(df.values)
-dfnp.shape
 logger.info(dfnp.shape)
-logger.info(dfnp)
+#logger.info(dfnp)
 
 wait_rsi25_signal = False
 profits = 0
 losses = 0
+trade_exit = 0
 
 for i, dfnp_row_i in enumerate(dfnp):
-    
+    if i < trade_exit:
+        continue
     #print(dfnp_row_i)
     #print(i)
     if dfnp_row_i[7] == True: # 2RSI<25
         time_2rsi_lower_25 = dfnp_row_i[0]
-        logger.info(f'2RSI<25: {dfnp_row_i[7]} {datetime.datetime.utcfromtimestamp(time_2rsi_lower_25/1000)}')
+        #logger.info(f'2RSI<25: {dfnp_row_i[7]} {datetime.datetime.utcfromtimestamp(time_2rsi_lower_25/1000)}')
 
         wait_rsi25_signal = True
 
         for j, dfnp_row_j in enumerate(dfnp[(i+1):]):
             #print(j)
             rsi = dfnp_row_j[5]
-            print(f'rsi: {rsi}')
+            #logger.info(f'rsi: {rsi}')
             if rsi > 25:
-                print('rsi > 25')
+                #logger.info('rsi > 25')
 
                 for k, dfnp_row_k in enumerate(dfnp[(i+1)+j:]):
                     macd = dfnp_row_k[6]
                     #print(f'macd: {dfnp_row_k[6]}')
-                    if macd >= 0:
-                        print(f'macd: {dfnp_row_k[6]}')
-                        print('buy!')
+                    #if macd:
+                    #if macd >= 0:
+                    if macd > dfnp[(i+1)+j+k-1][6]:
+                        #logger.info(f'macd: {dfnp_row_k[6]}')
+                        #logger.info(f'prev macd: {dfnp[(i+1)+j+k-1][6]}')
+                        #logger.info('buy!')
 
                         for l, dfnp_row_l in enumerate(dfnp[(i+1)+j+(k+1):]):
-                            print(dfnp_row_l)
-                            print(f'open: {dfnp_row_l[1]} | high: {dfnp_row_l[2]} | low: {dfnp_row_l[3]} | close: {dfnp_row_l[4]}')
+                            #logger.info(dfnp_row_l)
+                            #logger.info(f'open: {dfnp_row_l[1]} | high: {dfnp_row_l[2]} | low: {dfnp_row_l[3]} | close: {dfnp_row_l[4]}')
                             buy_price = dfnp_row_l[1]
                             max_high = dfnp_row_l[2]
                             max_low = dfnp_row_l[3]
                             loss = 0
                             profit = 0
-                            print(f'buy_price: {buy_price}')
+                            
 
                             for m, dfnp_row_m in enumerate(dfnp[(i+1)+j+(k+1)+(l+1):]):
+                                
+                                profit_percent = 0.1
+                                loss_percent = 0.02
 
-
-                                if dfnp_row_m[3] > max_high:
-                                    max_high = dfnp_row_m[3]
+                                if dfnp_row_m[2] > max_high:
+                                    max_high = dfnp_row_m[2]
                                     profit = (max_high - buy_price) * 100 / buy_price
 
-                                if dfnp_row_m[4] < max_low:
-                                    max_low = dfnp_row_m[4]
+                                if dfnp_row_m[3] < max_low:
+                                    max_low = dfnp_row_m[3]
                                     loss = (buy_price - max_low) * 100 / buy_price
 
-                                if profit >= 0.02:
+                                if profit >= profit_percent:
                                     profits += 1
 
-                                if loss >= 0.02:
+                                if loss >= loss_percent:
                                     losses += 1
 
-                                if profit >= 0.02 or loss >= 0.02:
-                                    print(f'profit: {profit} || loss: {loss}')
-                                    print(f'max_high: {max_high} || max_low: {max_low}')
-                                    print(f'time {datetime.datetime.utcfromtimestamp(dfnp_row_m[0]/1000)}')
+                                if profit >= profit_percent or loss >= loss_percent:
+                                    #logger.info(f'buy_price: {buy_price}')
+                                    #logger.info(f'profit: {profit} || loss: {loss}')
+                                    #logger.info(f'max_high: {max_high} || max_low: {max_low}')
+                                    #logger.info(f'time {datetime.datetime.utcfromtimestamp(dfnp_row_m[0]/1000)}')
+
+                                    trade_exit = (i+1)+j+(k+1)+(l+1)+(m+1)
 
                                     break
                             break
                         break
                 break
 
-logger.info(f'profits: {profits} || losses: {losses}')
+logger.info(f'profits: {profits} - {profits*profit_percent} \n\
+losses: {losses} {losses*loss_percent} \n\
+profit_percent: {profit_percent} || loss_percent: {loss_percent} \n\
+total_profit: {(profits*profit_percent)-(losses*loss_percent)}')
