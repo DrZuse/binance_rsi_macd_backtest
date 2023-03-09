@@ -168,6 +168,9 @@ for i, dfnp_row_i in enumerate(dfnp):
                         break
                 break
 
+    if i % 30_000 == 0:
+        logger.info(f'profits: {profits} || loss: {losses} || {datetime.datetime.utcfromtimestamp(dfnp_row_i[0]/1000)}')
+
 logger.info(f'profits: {profits} - {profits*profit_percent} \n\
 losses: {losses} {losses*loss_percent} \n\
 profit_percent: {profit_percent} || loss_percent: {loss_percent} \n\
