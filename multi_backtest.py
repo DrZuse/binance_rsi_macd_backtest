@@ -86,8 +86,8 @@ df.dropna(inplace=True)
 
 df.loc[(df['RSI'] <= 25) & (df['RSI'].shift(1) <= 25), '2RSI<25'] = True
 
-logger.info(df.head(50))
-logger.info(df.tail(50))
+#logger.info(df.head(50))
+#logger.info(df.tail(50))
 
 dfnp = np.array(df.values)
 logger.info(dfnp.shape)
@@ -114,14 +114,15 @@ for i, dfnp_row_i in enumerate(dfnp):
             rsi = dfnp_row_j[5]
             #logger.info(f'rsi: {rsi}')
             if rsi > 25:
+            #if rsi > 1:
                 #logger.info('rsi > 25')
 
                 for k, dfnp_row_k in enumerate(dfnp[(i+1)+j:]):
                     macd = dfnp_row_k[6]
                     #print(f'macd: {dfnp_row_k[6]}')
                     #if macd:
-                    #if macd >= 0:
-                    if macd > dfnp[(i+1)+j+k-1][6]:
+                    if macd >= 0:
+                    #if macd > dfnp[(i+1)+j+k-1][6]:
                         #logger.info(f'macd: {dfnp_row_k[6]}')
                         #logger.info(f'prev macd: {dfnp[(i+1)+j+k-1][6]}')
                         #logger.info('buy!')
@@ -138,8 +139,8 @@ for i, dfnp_row_i in enumerate(dfnp):
 
                             for m, dfnp_row_m in enumerate(dfnp[(i+1)+j+(k+1)+(l+1):]):
                                 
-                                profit_percent = 0.1
-                                loss_percent = 0.02
+                                profit_percent = 0.05
+                                loss_percent = 0.05
 
                                 if dfnp_row_m[2] > max_high:
                                     max_high = dfnp_row_m[2]
@@ -168,10 +169,10 @@ for i, dfnp_row_i in enumerate(dfnp):
                         break
                 break
 
-    if i % 30_000 == 0:
-        logger.info(f'profits: {profits} || loss: {losses} || {datetime.datetime.utcfromtimestamp(dfnp_row_i[0]/1000)}')
+    #if i % 30_000 == 0:
+    #    logger.info(f'profits: {profits} || loss: {losses} || {datetime.datetime.utcfromtimestamp(dfnp_row_i[0]/1000)}')
 
-logger.info(f'profits: {profits} - {profits*profit_percent} \n\
-losses: {losses} {losses*loss_percent} \n\
+logger.info(f'profitable trades: {profits} - {profits*profit_percent} \n\
+lose trades: {losses} - {losses*loss_percent} \n\
 profit_percent: {profit_percent} || loss_percent: {loss_percent} \n\
 total_profit: {(profits*profit_percent)-(losses*loss_percent)}')
