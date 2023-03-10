@@ -1,18 +1,9 @@
 
-[2023-03-10T09:59:48.229] INFO [multi_backtest.py.34377.140068351627712.<module>:24]
+[2023-03-10T13:00:40.214] INFO [multi_backtest.py.9239.140478535709120.<module>:24]
 start read csvs
 
-[2023-03-10T09:59:57.872] INFO [multi_backtest.py.34377.140068351627712.<module>:28]
+[2023-03-10T13:00:50.267] INFO [multi_backtest.py.9239.140478535709120.<module>:28]
 finish read csvs
 
-[2023-03-10T09:59:58.056] INFO [multi_backtest.py.34377.140068351627712.<module>:34]
+[2023-03-10T13:00:50.460] INFO [multi_backtest.py.9239.140478535709120.<module>:34]
 (20901681, 5)
-
-[2023-03-10T10:00:36.823] INFO [multi_backtest.py.34377.140068351627712.<module>:93]
-(20901648, 8)
-
-[2023-03-10T10:00:42.014] INFO [multi_backtest.py.34377.140068351627712.<module>:175]
-profitable trades: 22934 - 1146.7 
-lose trades: 21293 - 1064.65 
-profit_percent: 0.05 || loss_percent: 0.05 
-total_profit: 82.04999999999995

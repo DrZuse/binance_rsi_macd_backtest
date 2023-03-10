@@ -11,7 +11,7 @@ logger = setup_logger('read_csvs')
 names = ['Open time', 'Open', 'High', 'Low', 'Close', 'Volume', 'Close time', 'Quote asset volume', 'Number of trades', 'Taker buy base asset volume', 'Taker buy quote asset volume', 'Ignore']
 
 
-
+rsi_value = 25
 #----- Lists of files 
 
 csv_dir = '../big_dataframes/binance/spot/daily/klines/BTCUSDT/1s/'
@@ -84,7 +84,7 @@ df.dropna(inplace=True)
 #logger.info(df.head())
 
 
-df.loc[(df['RSI'] <= 25) & (df['RSI'].shift(1) <= 25), '2RSI<25'] = True
+df.loc[(df['RSI'] <= rsi_value) & (df['RSI'].shift(1) <= rsi_value), '2RSI<25'] = True
 
 #logger.info(df.head(50))
 #logger.info(df.tail(50))
@@ -98,11 +98,13 @@ profits = 0
 losses = 0
 trade_exit = 0
 
+
 for i, dfnp_row_i in enumerate(dfnp):
     if i < trade_exit:
         continue
     #print(dfnp_row_i)
     #print(i)
+    #if True:
     if dfnp_row_i[7] == True: # 2RSI<25
         time_2rsi_lower_25 = dfnp_row_i[0]
         #logger.info(f'2RSI<25: {dfnp_row_i[7]} {datetime.datetime.utcfromtimestamp(time_2rsi_lower_25/1000)}')
@@ -113,15 +115,15 @@ for i, dfnp_row_i in enumerate(dfnp):
             #print(j)
             rsi = dfnp_row_j[5]
             #logger.info(f'rsi: {rsi}')
-            if rsi > 25:
-            #if rsi > 1:
+            if rsi > rsi_value:
+            #if True:
                 #logger.info('rsi > 25')
 
                 for k, dfnp_row_k in enumerate(dfnp[(i+1)+j:]):
                     macd = dfnp_row_k[6]
                     #print(f'macd: {dfnp_row_k[6]}')
-                    #if macd:
-                    if macd >= 0:
+                    if True:
+                    #if macd >= 0:
                     #if macd > dfnp[(i+1)+j+k-1][6]:
                         #logger.info(f'macd: {dfnp_row_k[6]}')
                         #logger.info(f'prev macd: {dfnp[(i+1)+j+k-1][6]}')
@@ -139,8 +141,8 @@ for i, dfnp_row_i in enumerate(dfnp):
 
                             for m, dfnp_row_m in enumerate(dfnp[(i+1)+j+(k+1)+(l+1):]):
                                 
-                                profit_percent = 0.05
-                                loss_percent = 0.05
+                                profit_percent = 0.1
+                                loss_percent = 0.02
 
                                 if dfnp_row_m[2] > max_high:
                                     max_high = dfnp_row_m[2]
@@ -174,5 +176,7 @@ for i, dfnp_row_i in enumerate(dfnp):
 
 logger.info(f'profitable trades: {profits} - {profits*profit_percent} \n\
 lose trades: {losses} - {losses*loss_percent} \n\
+ratio: {profits/losses} \n\
 profit_percent: {profit_percent} || loss_percent: {loss_percent} \n\
+rsi_value: {rsi_value}\n\
 total_profit: {(profits*profit_percent)-(losses*loss_percent)}')
