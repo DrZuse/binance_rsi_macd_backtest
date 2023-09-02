@@ -43,7 +43,7 @@ pip install numpy pandas
 4. Run the script:
 
 ```bash
-python multi_backtest.py.py
+python multi_backtest.py
 ```
 
 ## Results
